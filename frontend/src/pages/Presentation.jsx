@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, fileUrl } from "../lib/api";
 import { ShiftBadge } from "../lib/constants";
 import { Button } from "../components/ui/button";
-import { ChevronLeft, ChevronRight, X, Play, Pause, Maximize, Wrench, ImageIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Play, Pause, Maximize, Wrench } from "lucide-react";
 import { toast } from "sonner";
+import { ActivityGallery } from "../components/ActivityGallery";
 
 const STAMP = {
   selesai: { text: "CASE CLOSED", color: "text-emerald-500 border-emerald-500" },
@@ -210,25 +211,7 @@ export default function Presentation() {
 
           {/* Activity images */}
           <div className="bg-slate-900 p-4">
-            {r.images?.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {r.images.map((im, i) => (
-                  <div key={im.id} className="space-y-1">
-                    <div className="aspect-[4/3] rounded-md overflow-hidden bg-slate-950 border border-slate-700">
-                      <img src={fileUrl(im.id)} alt={im.label || im.original_filename} className="w-full h-full object-cover" />
-                    </div>
-                    {im.label && (
-                      <div className="text-center text-xs text-slate-300 font-medium italic">{im.label}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-slate-600 industrial-stripes">
-                <ImageIcon className="w-8 h-8 mb-2" />
-                <div className="text-xs font-mono uppercase tracking-widest">Tidak ada foto activity</div>
-              </div>
-            )}
+            <ActivityGallery images={r.images || []} testidPrefix="slide-activity" />
           </div>
         </div>
 

@@ -326,9 +326,21 @@ export default function ReportForm() {
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
+                    <div className="flex gap-1">
+                      <button type="button" data-testid={`label-before-${idx}`}
+                        onClick={() => setImageLabel(idx, "Before")}
+                        className={`flex-1 h-7 text-[10px] font-bold rounded transition-colors ${(img.label || "").toLowerCase() === "before" ? "bg-slate-500/30 text-slate-100 border border-slate-400" : "bg-slate-900 text-slate-500 border border-slate-800 hover:text-slate-200 hover:border-slate-600"}`}>
+                        Before
+                      </button>
+                      <button type="button" data-testid={`label-after-${idx}`}
+                        onClick={() => setImageLabel(idx, "After")}
+                        className={`flex-1 h-7 text-[10px] font-bold rounded transition-colors ${(img.label || "").toLowerCase() === "after" ? "bg-emerald-500/30 text-emerald-100 border border-emerald-400" : "bg-slate-900 text-slate-500 border border-slate-800 hover:text-emerald-300 hover:border-emerald-700"}`}>
+                        After
+                      </button>
+                    </div>
                     <Input data-testid={`image-label-${idx}`} value={img.label || ""}
                       onChange={(e) => setImageLabel(idx, e.target.value)}
-                      placeholder="Label (Before / After)"
+                      placeholder="Label kustom..."
                       className="bg-slate-950 border-slate-800 text-white h-9 text-xs text-center" />
                   </div>
                 ))}

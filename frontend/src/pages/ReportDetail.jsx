@@ -3,8 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api, fileUrl } from "../lib/api";
 import { ShiftBadge } from "../lib/constants";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, Pencil, MonitorPlay, ImageIcon } from "lucide-react";
+import { ArrowLeft, Pencil, MonitorPlay } from "lucide-react";
 import { toast } from "sonner";
+import { ActivityGallery } from "../components/ActivityGallery";
 
 const STAMP = {
   selesai: { text: "CASE CLOSED", color: "text-emerald-500 border-emerald-500" },
@@ -50,7 +51,6 @@ export default function ReportDetail() {
   const { id } = useParams();
   const [r, setR] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -157,25 +157,7 @@ export default function ReportDetail() {
             Activity
           </div>
           <div className="bg-slate-900 p-4">
-            {r.images?.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                {r.images.map((im, i) => (
-                  <button key={im.id} data-testid={`detail-image-${i}`} onClick={() => setLightbox(im)}
-                    className="space-y-1 text-left group">
-                    <div className="aspect-[4/3] rounded-md overflow-hidden bg-slate-950 border border-slate-700 group-hover:border-amber-500/60 transition-all">
-                      <img src={fileUrl(im.id)} alt={im.label || im.original_filename}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                    {im.label && <div className="text-center text-xs text-slate-300 font-medium italic">{im.label}</div>}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-slate-600 industrial-stripes">
-                <ImageIcon className="w-8 h-8 mb-2" />
-                <div className="text-xs font-mono uppercase tracking-widest">Tidak ada foto activity</div>
-              </div>
-            )}
+            <ActivityGallery images={r.images || []} testidPrefix="detail-image" />
           </div>
         </div>
 
@@ -194,13 +176,6 @@ export default function ReportDetail() {
         )}
       </main>
 
-      {lightbox && (
-        <div onClick={() => setLightbox(null)}
-          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 cursor-zoom-out">
-          <img src={fileUrl(lightbox.id)} alt={lightbox.original_filename} className="max-w-full max-h-[85vh] object-contain" />
-          {lightbox.label && <div className="mt-4 text-slate-200 font-medium italic">{lightbox.label}</div>}
-        </div>
-      )}
     </div>
   );
 }
