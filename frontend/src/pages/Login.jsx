@@ -54,18 +54,10 @@ export default function Login() {
           </div>
 
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-mono uppercase tracking-widest text-amber-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              Sistem Aktif
-            </div>
             <h1 className="font-display text-5xl xl:text-6xl font-extrabold text-white leading-[1.05] tracking-tight">
-              Laporan Harian<br/>
-              <span className="text-amber-400">Maintenance</span><br/>
-              Terpusat.
+              Daily Report<br/>
+              <span className="text-amber-400">Maintenance</span>
             </h1>
-            <p className="text-slate-400 text-base max-w-md leading-relaxed">
-              Catat setiap laporan pekerjaan maintenance per shift. Presentasikan hasil serah terima layaknya PPT — cukup satu klik.
-            </p>
           </div>
 
           <div className="grid grid-cols-3 gap-6 pt-8 border-t border-slate-800/60">
