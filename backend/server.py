@@ -387,6 +387,39 @@ async def delete_report(report_id: str, user: dict = Depends(get_current_user)):
     await db.reports.delete_one({"id": report_id})
     return {"ok": True}
 
+class MasterItem(BaseModel):
+    type: str
+    name: str
+
+@api_router.get("/master")
+async def list_master(type: Optional[str] = None, user: dict = Depends(get_current_user)):
+    filt = {}
+    if type: filt["type"] = type
+    docs = await db.master.find(filt, {"_id": 0}).sort("name", 1).to_list(1000)
+    return docs
+
+@api_router.post("/master")
+async def add_master(payload: MasterItem, user: dict = Depends(get_current_user)):
+    if payload.type not in ["line", "mesin", "operator", "jig"]:
+        raise HTTPException(status_code=400, detail="Tipe tidak valid")
+    name = payload.name.strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Nama wajib diisi")
+    existing = await db.master.find_one({"type": payload.type, "name": name})
+    if existing:
+        raise HTTPException(status_code=400, detail="Data sudah ada")
+    doc = {"id": str(uuid.uuid4()), "type": payload.type, "name": name,
+           "created_at": datetime.now(timezone.utc).isoformat()}
+    await db.master.insert_one(doc)
+    return {"id": doc["id"], "type": doc["type"], "name": doc["name"]}
+
+@api_router.delete("/master/{item_id}")
+async def del_master(item_id: str, user: dict = Depends(get_current_user)):
+    r = await db.master.delete_one({"id": item_id})
+    if r.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Data tidak ditemukan")
+    return {"ok": True}
+
 @api_router.get("/")
 async def root():
     return {"message": "Maintenance Report API"}

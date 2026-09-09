@@ -24,6 +24,18 @@ export default function ReportForm() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [master, setMaster] = useState({ line: [], mesin: [], jig: [], operator: [] });
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await api.get("/master");
+        const g = { line: [], mesin: [], jig: [], operator: [] };
+        for (const it of data) if (g[it.type]) g[it.type].push(it.name);
+        setMaster(g);
+      } catch {}
+    })();
+  }, []);
 
   const [form, setForm] = useState({
     tanggal: format(new Date(), "yyyy-MM-dd"),
@@ -201,15 +213,15 @@ export default function ReportForm() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FieldWrap label="Line">
                 <Input data-testid="form-line" value={form.line} onChange={(e) => setForm({ ...form, line: e.target.value })}
-                  placeholder="cth: Assy 7" className="bg-slate-950 border-slate-800 text-white h-11" />
+                  list="master-lines" placeholder="cth: Assy 7" className="bg-slate-950 border-slate-800 text-white h-11" />
               </FieldWrap>
               <FieldWrap label="Mesin">
                 <Input data-testid="form-mesin" value={form.mesin} onChange={(e) => setForm({ ...form, mesin: e.target.value })}
-                  placeholder="cth: Robot welding" className="bg-slate-950 border-slate-800 text-white h-11" />
+                  list="master-mesins" placeholder="cth: Robot welding" className="bg-slate-950 border-slate-800 text-white h-11" />
               </FieldWrap>
               <FieldWrap label="Jig">
                 <Input data-testid="form-jig" value={form.jig} onChange={(e) => setForm({ ...form, jig: e.target.value })}
-                  placeholder="cth: Manifold" className="bg-slate-950 border-slate-800 text-white h-11" />
+                  list="master-jigs" placeholder="cth: Manifold" className="bg-slate-950 border-slate-800 text-white h-11" />
               </FieldWrap>
             </div>
           </Card>
@@ -276,7 +288,7 @@ export default function ReportForm() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FieldWrap label="Who">
                 <Input data-testid="form-who" value={form.who} onChange={(e) => setForm({ ...form, who: e.target.value })}
-                  placeholder="cth: Roch" className="bg-slate-950 border-slate-800 text-white h-11" />
+                  list="master-operators" placeholder="cth: Roch" className="bg-slate-950 border-slate-800 text-white h-11" />
               </FieldWrap>
               <FieldWrap label="Time">
                 <Input data-testid="form-time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })}
@@ -334,6 +346,20 @@ export default function ReportForm() {
             </Button>
           </div>
         </form>
+
+        {/* Master data autocomplete lists */}
+        <datalist id="master-lines">
+          {master.line.map((n) => <option key={n} value={n} />)}
+        </datalist>
+        <datalist id="master-mesins">
+          {master.mesin.map((n) => <option key={n} value={n} />)}
+        </datalist>
+        <datalist id="master-jigs">
+          {master.jig.map((n) => <option key={n} value={n} />)}
+        </datalist>
+        <datalist id="master-operators">
+          {master.operator.map((n) => <option key={n} value={n} />)}
+        </datalist>
       </main>
     </div>
   );

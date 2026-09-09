@@ -16,7 +16,7 @@ import {
 } from "../components/ui/alert-dialog";
 import {
   Wrench, Plus, Search, Filter, MonitorPlay, LogOut, Pencil, Trash2, Eye, ImageIcon,
-  CheckCircle2, Clock, AlertTriangle, Cog, HardHat, ChevronDown, Calendar as CalendarIcon
+  CheckCircle2, Clock, AlertTriangle, Cog, HardHat, ChevronDown, Calendar as CalendarIcon, Database
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -82,6 +82,15 @@ export default function Dashboard() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
+            <Button
+              data-testid="master-data-btn"
+              variant="ghost"
+              onClick={() => nav("/master")}
+              className="text-slate-300 hover:bg-slate-800 hover:text-white h-9 gap-1.5 px-3"
+            >
+              <Database className="w-4 h-4" />
+              <span className="hidden md:inline">Master Data</span>
+            </Button>
             <Button
               data-testid="present-mode-btn"
               onClick={() => nav(`/present?shift=${shift}&status=${status}${q ? `&q=${encodeURIComponent(q)}` : ""}`)}
