@@ -51,6 +51,7 @@ export default function ReportForm() {
     time: "",
     status: "progress",
     kendala: "",
+    pic: "",
     catatan: "",
     images: [],
   });
@@ -75,6 +76,7 @@ export default function ReportForm() {
           time: data.time || "",
           status: data.status,
           kendala: data.kendala || "",
+          pic: data.pic || "",
           catatan: data.catatan || "",
           images: data.images || [],
         });
@@ -207,6 +209,16 @@ export default function ReportForm() {
                 placeholder="cth: Robot Welding Assy 7 — Perbaikan Manifold"
                 className="bg-slate-950 border-slate-800 text-white h-11" />
             </FieldWrap>
+            <FieldWrap label="PIC (Person In Charge)">
+              <Select value={form.pic || undefined} onValueChange={(v) => setForm({ ...form, pic: v })}>
+                <SelectTrigger data-testid="form-pic" className="bg-slate-950 border-slate-800 text-white h-11">
+                  <SelectValue placeholder={master.operator.length ? "Pilih PIC dari master Operator" : "Belum ada operator — tambah di Master Data"} />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                  {master.operator.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </FieldWrap>
           </Card>
 
           {/* Keterangan */}
@@ -214,16 +226,34 @@ export default function ReportForm() {
             <SectionHeader icon={<ClipboardList className="w-4 h-4 text-emerald-400" />} label="Keterangan" />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FieldWrap label="Line">
-                <Input data-testid="form-line" value={form.line} onChange={(e) => setForm({ ...form, line: e.target.value })}
-                  list="master-lines" placeholder="cth: Assy 7" className="bg-slate-950 border-slate-800 text-white h-11" />
+                <Select value={form.line || undefined} onValueChange={(v) => setForm({ ...form, line: v })}>
+                  <SelectTrigger data-testid="form-line" className="bg-slate-950 border-slate-800 text-white h-11">
+                    <SelectValue placeholder={master.line.length ? "Pilih Line" : "Belum ada — tambah di Master Data"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    {master.line.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </FieldWrap>
               <FieldWrap label="Mesin">
-                <Input data-testid="form-mesin" value={form.mesin} onChange={(e) => setForm({ ...form, mesin: e.target.value })}
-                  list="master-mesins" placeholder="cth: Robot welding" className="bg-slate-950 border-slate-800 text-white h-11" />
+                <Select value={form.mesin || undefined} onValueChange={(v) => setForm({ ...form, mesin: v })}>
+                  <SelectTrigger data-testid="form-mesin" className="bg-slate-950 border-slate-800 text-white h-11">
+                    <SelectValue placeholder={master.mesin.length ? "Pilih Mesin" : "Belum ada — tambah di Master Data"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    {master.mesin.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </FieldWrap>
               <FieldWrap label="Jig">
-                <Input data-testid="form-jig" value={form.jig} onChange={(e) => setForm({ ...form, jig: e.target.value })}
-                  list="master-jigs" placeholder="cth: Manifold" className="bg-slate-950 border-slate-800 text-white h-11" />
+                <Select value={form.jig || undefined} onValueChange={(v) => setForm({ ...form, jig: v })}>
+                  <SelectTrigger data-testid="form-jig" className="bg-slate-950 border-slate-800 text-white h-11">
+                    <SelectValue placeholder={master.jig.length ? "Pilih Jig" : "Belum ada — tambah di Master Data"} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                    {master.jig.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </FieldWrap>
             </div>
           </Card>
@@ -378,16 +408,7 @@ export default function ReportForm() {
           </div>
         </form>
 
-        {/* Master data autocomplete lists */}
-        <datalist id="master-lines">
-          {master.line.map((n) => <option key={n} value={n} />)}
-        </datalist>
-        <datalist id="master-mesins">
-          {master.mesin.map((n) => <option key={n} value={n} />)}
-        </datalist>
-        <datalist id="master-jigs">
-          {master.jig.map((n) => <option key={n} value={n} />)}
-        </datalist>
+        {/* Master operator autocomplete for Who field */}
         <datalist id="master-operators">
           {master.operator.map((n) => <option key={n} value={n} />)}
         </datalist>

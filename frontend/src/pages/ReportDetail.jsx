@@ -145,6 +145,7 @@ export default function ReportDetail() {
             <Cell className="lg:col-span-2">
               <div className="space-y-1.5 text-sm">
                 <KV k="Who" v={r.who || r.created_by_name} />
+                <KV k="PIC" v={r.pic} />
                 <KV k="Time" v={r.time} />
               </div>
             </Cell>
