@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card } from "../components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
-import { ArrowLeft, Plus, Trash2, Factory, Cog, User, Wrench, Database } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Factory, Cog, User, Wrench, Database, Download, Upload as UploadIcon, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 
 const TYPES = [
@@ -20,6 +20,47 @@ export default function MasterData() {
   const [items, setItems] = useState({ line: [], mesin: [], jig: [], operator: [] });
   const [newName, setNewName] = useState({ line: "", mesin: "", jig: "", operator: "" });
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
+
+  const downloadTemplate = async () => {
+    try {
+      const res = await api.get("/master/template", { responseType: "blob" });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "master_data_template.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Template Excel diunduh");
+    } catch (e) {
+      toast.error("Gagal mengunduh template");
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImporting(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const { data } = await api.post("/master/import", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      const total = data.line + data.mesin + data.jig + data.operator;
+      toast.success(
+        `Import selesai: ${total} data baru (+${data.line} Line, +${data.mesin} Mesin, +${data.jig} Jig, +${data.operator} Operator)${data.skipped ? ` · ${data.skipped} duplikat dilewati` : ""}`
+      );
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Gagal import file");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const load = async () => {
     try {
@@ -78,10 +119,35 @@ export default function MasterData() {
           <div className="text-xs font-mono uppercase tracking-widest text-amber-400 mb-2">
             // Data Referensi
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Master Data</h1>
-          <p className="text-slate-400 text-sm mt-2 max-w-2xl">
-            Kelola daftar <span className="text-white font-medium">Line, Mesin, Jig,</span> dan <span className="text-white font-medium">Operator</span> agar pengisian laporan lebih cepat & konsisten. Data ini akan muncul sebagai saran otomatis saat mengisi laporan.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-4">
+            <div>
+              <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Master Data</h1>
+              <p className="text-slate-400 text-sm mt-2 max-w-2xl">
+                Kelola daftar <span className="text-white font-medium">Line, Mesin, Jig,</span> dan <span className="text-white font-medium">Operator</span>. Import banyak sekaligus lewat Excel, atau tambah manual.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <Button data-testid="download-template-btn" variant="ghost" onClick={downloadTemplate}
+                className="text-slate-200 border border-slate-800 hover:bg-slate-800 hover:text-white gap-1.5 h-10">
+                <Download className="w-4 h-4" /> Template Excel
+              </Button>
+              <label className="inline-flex">
+                <input data-testid="import-excel-input" type="file" accept=".xlsx,.xlsm"
+                  onChange={handleImport} disabled={importing} className="hidden" />
+                <span data-testid="import-excel-btn"
+                  className={`inline-flex items-center gap-1.5 h-10 px-4 rounded-md font-bold text-slate-950 cursor-pointer transition-colors ${importing ? "bg-slate-700 text-slate-400 cursor-not-allowed" : "bg-amber-500 hover:bg-amber-400"}`}>
+                  <UploadIcon className="w-4 h-4" strokeWidth={2.5} />
+                  {importing ? "Mengimport..." : "Import Excel"}
+                </span>
+              </label>
+            </div>
+          </div>
+          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800 flex items-start gap-3 text-xs text-slate-400 leading-relaxed">
+            <FileSpreadsheet className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <span className="text-slate-200 font-medium">Format Template:</span> 1 file .xlsx berisi 4 sheet (<span className="text-amber-400 font-mono">Line, Mesin, Jig, Operator</span>) dengan kolom <span className="font-mono text-slate-200">Name</span> di baris pertama. Isi mulai baris ke-2. Duplikat otomatis dilewati.
+            </div>
+          </div>
         </div>
 
         <Tabs defaultValue="line" className="space-y-6">

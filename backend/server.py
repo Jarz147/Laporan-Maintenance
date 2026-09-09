@@ -10,6 +10,8 @@ import logging
 import bcrypt
 import jwt as pyjwt
 import requests
+from io import BytesIO
+from openpyxl import Workbook, load_workbook
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional, Annotated
 
@@ -390,6 +392,67 @@ async def delete_report(report_id: str, user: dict = Depends(get_current_user)):
 class MasterItem(BaseModel):
     type: str
     name: str
+
+@api_router.get("/master/template")
+async def master_template(user: dict = Depends(get_current_user)):
+    wb = Workbook()
+    wb.remove(wb.active)
+    samples = {
+        "Line": ["Assy 7", "Stamping A", "Line CNC"],
+        "Mesin": ["Robot welding", "Press 200T", "CNC Milling"],
+        "Jig": ["Manifold", "Upper Lower", "Bracket"],
+        "Operator": ["Roch", "Budi", "Andi"],
+    }
+    for sheet_name, items in samples.items():
+        ws = wb.create_sheet(sheet_name)
+        ws.append(["Name"])
+        for it in items:
+            ws.append([it])
+        ws.column_dimensions["A"].width = 32
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return FastAPIResponse(
+        content=buf.read(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="master_data_template.xlsx"'}
+    )
+
+@api_router.post("/master/import")
+async def master_import(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    if not file.filename.lower().endswith((".xlsx", ".xlsm")):
+        raise HTTPException(status_code=400, detail="Hanya file .xlsx yang didukung")
+    data = await file.read()
+    try:
+        wb = load_workbook(BytesIO(data), read_only=True, data_only=True)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"File tidak valid: {e}")
+    type_map = {"line": "line", "mesin": "mesin", "jig": "jig", "operator": "operator"}
+    summary = {"line": 0, "mesin": 0, "jig": 0, "operator": 0, "skipped": 0}
+    for sn in wb.sheetnames:
+        t = type_map.get(sn.strip().lower())
+        if not t:
+            continue
+        ws = wb[sn]
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row:
+                continue
+            val = row[0]
+            if val is None:
+                continue
+            name = str(val).strip()
+            if not name:
+                continue
+            existing = await db.master.find_one({"type": t, "name": name})
+            if existing:
+                summary["skipped"] += 1
+                continue
+            await db.master.insert_one({
+                "id": str(uuid.uuid4()), "type": t, "name": name,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            summary[t] += 1
+    return summary
 
 @api_router.get("/master")
 async def list_master(type: Optional[str] = None, user: dict = Depends(get_current_user)):
