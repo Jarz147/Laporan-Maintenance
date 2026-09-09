@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api, fileUrl } from "../lib/api";
 import { ShiftBadge } from "../lib/constants";
 import { Button } from "../components/ui/button";
-import { ArrowLeft, Pencil, MonitorPlay } from "lucide-react";
+import { ArrowLeft, Pencil, MonitorPlay, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { ActivityGallery } from "../components/ActivityGallery";
 
@@ -160,6 +160,16 @@ export default function ReportDetail() {
             <ActivityGallery images={r.images || []} testidPrefix="detail-image" />
           </div>
         </div>
+
+        {r.status === "issue" && r.kendala && (
+          <div data-testid="detail-kendala" className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/30">
+            <div className="flex items-center gap-2 mb-1.5">
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
+              <div className="text-xs font-mono uppercase tracking-widest text-rose-400">Kendala</div>
+            </div>
+            <p className="text-slate-100 text-sm leading-relaxed whitespace-pre-wrap">{r.kendala}</p>
+          </div>
+        )}
 
         {r.catatan && (
           <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">

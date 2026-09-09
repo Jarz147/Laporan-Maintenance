@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, fileUrl } from "../lib/api";
 import { ShiftBadge } from "../lib/constants";
 import { Button } from "../components/ui/button";
-import { ChevronLeft, ChevronRight, X, Play, Pause, Maximize, Wrench } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Play, Pause, Maximize, Wrench, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { ActivityGallery } from "../components/ActivityGallery";
 
@@ -214,6 +214,16 @@ export default function Presentation() {
             <ActivityGallery images={r.images || []} testidPrefix="slide-activity" />
           </div>
         </div>
+
+        {r.status === "issue" && r.kendala && (
+          <div data-testid="slide-kendala" className="mt-4 p-4 rounded-lg bg-rose-500/10 border border-rose-500/30">
+            <div className="flex items-center gap-2 mb-1.5">
+              <AlertTriangle className="w-4 h-4 text-rose-400" />
+              <div className="text-xs font-mono uppercase tracking-widest text-rose-400">Kendala</div>
+            </div>
+            <p className="text-slate-100 text-sm leading-relaxed whitespace-pre-wrap">{r.kendala}</p>
+          </div>
+        )}
 
         {r.catatan && (
           <div className="mt-4 p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">

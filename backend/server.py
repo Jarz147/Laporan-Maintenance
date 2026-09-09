@@ -139,7 +139,8 @@ class ReportCreate(BaseModel):
     activities: List[str] = []
     who: Optional[str] = ""
     time: Optional[str] = ""
-    status: str  # selesai, pending, issue, progress
+    status: str  # selesai, issue, progress
+    kendala: Optional[str] = ""
     catatan: Optional[str] = ""
     images: List[ReportImage] = []
 
@@ -156,6 +157,7 @@ class ReportUpdate(BaseModel):
     who: Optional[str] = None
     time: Optional[str] = None
     status: Optional[str] = None
+    kendala: Optional[str] = None
     catatan: Optional[str] = None
     images: Optional[List[ReportImage]] = None
 
@@ -302,6 +304,7 @@ async def create_report(payload: ReportCreate, user: dict = Depends(get_current_
         "who": payload.who or "",
         "time": payload.time or "",
         "status": payload.status,
+        "kendala": payload.kendala or "",
         "catatan": payload.catatan or "",
         "images": [img.model_dump() for img in payload.images],
         "created_by": user["id"],

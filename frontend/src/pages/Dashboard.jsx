@@ -171,13 +171,12 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
           <KPI icon={<CalendarIcon className="w-4 h-4" />} label="Hari Ini" value={stats.today || 0} color="text-white" testid="kpi-today" />
           <KPI icon={<Wrench className="w-4 h-4" />} label="Total" value={stats.total || 0} color="text-white" testid="kpi-total" />
           <KPI icon={<CheckCircle2 className="w-4 h-4" />} label="Selesai" value={stats.selesai || 0} color="text-emerald-400" testid="kpi-selesai" />
-          <KPI icon={<Clock className="w-4 h-4" />} label="Pending" value={stats.pending || 0} color="text-amber-400" testid="kpi-pending" />
-          <KPI icon={<AlertTriangle className="w-4 h-4" />} label="Kendala" value={stats.issue || 0} color="text-rose-400" testid="kpi-issue" />
           <KPI icon={<Cog className="w-4 h-4" />} label="Proses" value={stats.progress || 0} color="text-blue-400" testid="kpi-progress" />
+          <KPI icon={<AlertTriangle className="w-4 h-4" />} label="Kendala" value={stats.issue || 0} color="text-rose-400" testid="kpi-issue" />
         </div>
 
         {/* Filter Toolbar */}
@@ -239,7 +238,7 @@ export default function Dashboard() {
                 </SelectTrigger>
                 <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
                   <SelectItem value="all">Semua Status</SelectItem>
-                  {Object.entries(STATUS_MAP).map(([k, v]) => (
+                  {Object.entries(STATUS_MAP).filter(([k]) => k !== "pending").map(([k, v]) => (
                     <SelectItem key={k} value={k}>{v.label}</SelectItem>
                   ))}
                 </SelectContent>

@@ -10,7 +10,7 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Card } from "../components/ui/card";
 import {
-  ArrowLeft, Save, Upload, X, ImagePlus, Wrench, Plus, ListChecks, Zap, UserCog, ClipboardList
+  ArrowLeft, Save, Upload, X, ImagePlus, Wrench, Plus, ListChecks, Zap, UserCog, ClipboardList, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -49,7 +49,8 @@ export default function ReportForm() {
     activities: [""],
     who: user?.name || "",
     time: "",
-    status: "pending",
+    status: "progress",
+    kendala: "",
     catatan: "",
     images: [],
   });
@@ -73,6 +74,7 @@ export default function ReportForm() {
           who: data.who || "",
           time: data.time || "",
           status: data.status,
+          kendala: data.kendala || "",
           catatan: data.catatan || "",
           images: data.images || [],
         });
@@ -194,7 +196,7 @@ export default function ReportForm() {
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger data-testid="form-status" className="bg-slate-950 border-slate-800 text-white h-11"><SelectValue /></SelectTrigger>
                   <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
-                    {Object.entries(STATUS_MAP).map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
+                    {Object.entries(STATUS_MAP).filter(([k]) => k !== "pending").map(([k, v]) => <SelectItem key={k} value={k}>{v.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </FieldWrap>
@@ -225,6 +227,23 @@ export default function ReportForm() {
               </FieldWrap>
             </div>
           </Card>
+
+          {/* Kendala — muncul otomatis saat status = Kendala */}
+          {form.status === "issue" && (
+            <Card data-testid="kendala-card" className="bg-rose-500/5 border-rose-500/30 p-5 sm:p-6 space-y-4 animate-slide-fade">
+              <div className="flex items-center gap-2 pb-2 border-b border-rose-500/20">
+                <AlertTriangle className="w-4 h-4 text-rose-400" />
+                <div className="text-xs font-mono uppercase tracking-widest text-rose-400">Deskripsi Kendala</div>
+              </div>
+              <FieldWrap label="Jelaskan kendala yang terjadi">
+                <Textarea data-testid="form-kendala" value={form.kendala}
+                  onChange={(e) => setForm({ ...form, kendala: e.target.value })}
+                  placeholder="cth: Robot welding tidak bisa start karena error servo. Sudah dicoba restart tapi masih error. Butuh teknisi vendor untuk kalibrasi ulang..."
+                  rows={4}
+                  className="bg-slate-950 border-rose-500/30 text-white resize-none focus-visible:ring-rose-500 focus-visible:ring-offset-0" />
+              </FieldWrap>
+            </Card>
+          )}
 
           {/* WHAT (Problem) */}
           <Card className="bg-slate-900/60 border-slate-800 p-5 sm:p-6 space-y-3">
