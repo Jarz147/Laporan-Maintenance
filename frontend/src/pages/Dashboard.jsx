@@ -16,7 +16,7 @@ import {
 } from "../components/ui/alert-dialog";
 import {
   Wrench, Plus, Search, Filter, MonitorPlay, LogOut, Pencil, Trash2, Eye, ImageIcon,
-  CheckCircle2, Clock, AlertTriangle, Cog, HardHat, ChevronDown, Calendar as CalendarIcon, Database
+  CheckCircle2, Clock, AlertTriangle, Cog, HardHat, ChevronDown, Calendar as CalendarIcon, Database, X
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -31,6 +31,9 @@ export default function Dashboard() {
   const [q, setQ] = useState("");
   const [shift, setShift] = useState("all");
   const [status, setStatus] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [activePreset, setActivePreset] = useState("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -39,6 +42,8 @@ export default function Dashboard() {
       if (q) params.q = q;
       if (shift !== "all") params.shift = shift;
       if (status !== "all") params.status = status;
+      if (dateFrom) params.date_from = dateFrom;
+      if (dateTo) params.date_to = dateTo;
       const [r, s] = await Promise.all([
         api.get("/reports", { params }),
         api.get("/reports/stats"),
@@ -50,7 +55,17 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [q, shift, status]);
+  }, [q, shift, status, dateFrom, dateTo]);
+
+  const setPreset = (preset) => {
+    const fmtD = (d) => format(d, "yyyy-MM-dd");
+    const today = new Date();
+    setActivePreset(preset);
+    if (preset === "all") { setDateFrom(""); setDateTo(""); return; }
+    if (preset === "today") { const t = fmtD(today); setDateFrom(t); setDateTo(t); return; }
+    if (preset === "week") { const d = new Date(); d.setDate(d.getDate() - 6); setDateFrom(fmtD(d)); setDateTo(fmtD(today)); return; }
+    if (preset === "month") { const d = new Date(); d.setDate(d.getDate() - 29); setDateFrom(fmtD(d)); setDateTo(fmtD(today)); return; }
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -166,40 +181,70 @@ export default function Dashboard() {
         </div>
 
         {/* Filter Toolbar */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 sm:p-4 mb-6 flex flex-col lg:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-            <Input
-              data-testid="search-input"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Cari area, deskripsi, catatan..."
-              className="pl-10 bg-slate-950 border-slate-800 h-10 text-white placeholder:text-slate-600"
-            />
+        <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 sm:p-4 mb-6 space-y-3">
+          {/* Date range */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="text-xs font-mono uppercase tracking-widest text-slate-500 mr-1 flex items-center gap-1.5">
+              <CalendarIcon className="w-3.5 h-3.5" /> Periode:
+            </div>
+            {[["all", "Semua"], ["today", "Hari Ini"], ["week", "7 Hari"], ["month", "30 Hari"]].map(([k, l]) => (
+              <button key={k} type="button" data-testid={`preset-${k}`} onClick={() => setPreset(k)}
+                className={`h-8 px-3 rounded-md text-xs font-medium transition-colors border ${activePreset === k ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700"}`}>
+                {l}
+              </button>
+            ))}
+            <div className="flex items-center gap-1.5 lg:ml-auto flex-wrap">
+              <Input data-testid="date-from" type="date" value={dateFrom}
+                onChange={(e) => { setDateFrom(e.target.value); setActivePreset(""); }}
+                className="bg-slate-950 border-slate-800 text-white h-8 text-xs w-auto" />
+              <span className="text-slate-500 text-xs">—</span>
+              <Input data-testid="date-to" type="date" value={dateTo}
+                onChange={(e) => { setDateTo(e.target.value); setActivePreset(""); }}
+                className="bg-slate-950 border-slate-800 text-white h-8 text-xs w-auto" />
+              {(dateFrom || dateTo) && (
+                <button type="button" data-testid="clear-date-btn" onClick={() => setPreset("all")}
+                  className="text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 h-8 w-8 rounded-md flex items-center justify-center">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
-          <div className="grid grid-cols-2 lg:flex gap-2">
-            <Select value={shift} onValueChange={setShift}>
-              <SelectTrigger data-testid="filter-shift" className="w-full lg:w-48 bg-slate-950 border-slate-800 text-white h-10">
-                <Filter className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-                <SelectValue placeholder="Semua Shift" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
-                <SelectItem value="all">Semua Shift</SelectItem>
-                <SelectItem value="shift1">Shift 1 (Pagi)</SelectItem>
-                <SelectItem value="shift2">Shift 2 (Malam)</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger data-testid="filter-status" className="w-full lg:w-48 bg-slate-950 border-slate-800 text-white h-10">
-                <SelectValue placeholder="Semua Status" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
-                <SelectItem value="all">Semua Status</SelectItem>
-                {Object.entries(STATUS_MAP).map(([k, v]) => (
-                  <SelectItem key={k} value={k}>{v.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Search + filters */}
+          <div className="flex flex-col lg:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Input
+                data-testid="search-input"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Cari area, deskripsi, catatan..."
+                className="pl-10 bg-slate-950 border-slate-800 h-10 text-white placeholder:text-slate-600"
+              />
+            </div>
+            <div className="grid grid-cols-2 lg:flex gap-2">
+              <Select value={shift} onValueChange={setShift}>
+                <SelectTrigger data-testid="filter-shift" className="w-full lg:w-48 bg-slate-950 border-slate-800 text-white h-10">
+                  <Filter className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                  <SelectValue placeholder="Semua Shift" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                  <SelectItem value="all">Semua Shift</SelectItem>
+                  <SelectItem value="shift1">Shift 1 (Pagi)</SelectItem>
+                  <SelectItem value="shift2">Shift 2 (Malam)</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger data-testid="filter-status" className="w-full lg:w-48 bg-slate-950 border-slate-800 text-white h-10">
+                  <SelectValue placeholder="Semua Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
+                  <SelectItem value="all">Semua Status</SelectItem>
+                  {Object.entries(STATUS_MAP).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>{v.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -216,15 +261,49 @@ export default function Dashboard() {
             </Button>
           </div>
         ) : (
-          <div data-testid="reports-grid" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {reports.map((r, idx) => (
-              <ReportCard key={r.id} r={r} idx={idx} onDelete={del} canDelete={user?.role === "admin" || r.created_by === user?.id} />
+          <div data-testid="reports-grid" className="space-y-8">
+            {groupByDate(reports).map(([tanggal, group], gi) => (
+              <div key={tanggal} className="space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/30">
+                    <CalendarIcon className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="font-mono text-xs uppercase tracking-widest text-amber-400">
+                      {formatDateHeader(tanggal)}
+                    </span>
+                  </div>
+                  <span className="text-xs text-slate-500 font-mono">{group.length} laporan</span>
+                  <div className="flex-1 h-px bg-slate-800/60" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {group.map((r, idx) => (
+                    <ReportCard key={r.id} r={r} idx={gi * 100 + idx} onDelete={del}
+                      canDelete={user?.role === "admin" || r.created_by === user?.id} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
       </main>
     </div>
   );
+}
+
+function groupByDate(reports) {
+  const map = {};
+  for (const r of reports) {
+    if (!map[r.tanggal]) map[r.tanggal] = [];
+    map[r.tanggal].push(r);
+  }
+  return Object.entries(map).sort(([a], [b]) => b.localeCompare(a));
+}
+
+function formatDateHeader(tanggal) {
+  try {
+    return format(new Date(tanggal + "T00:00:00"), "EEEE, d MMMM yyyy", { locale: idLocale });
+  } catch {
+    return tanggal;
+  }
 }
 
 function KPI({ icon, label, value, color, testid }) {
