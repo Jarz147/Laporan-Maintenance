@@ -123,12 +123,20 @@ class ReportImage(BaseModel):
     storage_path: str
     original_filename: str
     content_type: str
+    label: Optional[str] = ""
 
 class ReportCreate(BaseModel):
     tanggal: str  # YYYY-MM-DD
     shift: str  # "shift1" or "shift2"
     area: str
-    deskripsi: str
+    line: Optional[str] = ""
+    mesin: Optional[str] = ""
+    jig: Optional[str] = ""
+    deskripsi: Optional[str] = ""
+    problems: List[str] = []
+    activities: List[str] = []
+    who: Optional[str] = ""
+    time: Optional[str] = ""
     status: str  # selesai, pending, issue, progress
     catatan: Optional[str] = ""
     images: List[ReportImage] = []
@@ -137,7 +145,14 @@ class ReportUpdate(BaseModel):
     tanggal: Optional[str] = None
     shift: Optional[str] = None
     area: Optional[str] = None
+    line: Optional[str] = None
+    mesin: Optional[str] = None
+    jig: Optional[str] = None
     deskripsi: Optional[str] = None
+    problems: Optional[List[str]] = None
+    activities: Optional[List[str]] = None
+    who: Optional[str] = None
+    time: Optional[str] = None
     status: Optional[str] = None
     catatan: Optional[str] = None
     images: Optional[List[ReportImage]] = None
@@ -276,7 +291,14 @@ async def create_report(payload: ReportCreate, user: dict = Depends(get_current_
         "tanggal": payload.tanggal,
         "shift": payload.shift,
         "area": payload.area,
-        "deskripsi": payload.deskripsi,
+        "line": payload.line or "",
+        "mesin": payload.mesin or "",
+        "jig": payload.jig or "",
+        "deskripsi": payload.deskripsi or "",
+        "problems": payload.problems or [],
+        "activities": payload.activities or [],
+        "who": payload.who or "",
+        "time": payload.time or "",
         "status": payload.status,
         "catatan": payload.catatan or "",
         "images": [img.model_dump() for img in payload.images],

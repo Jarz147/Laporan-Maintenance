@@ -1,16 +1,54 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { api, fileUrl } from "../lib/api";
-import { StatusBadge, ShiftBadge } from "../lib/constants";
+import { ShiftBadge } from "../lib/constants";
 import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
-import { ArrowLeft, Pencil, MonitorPlay, Calendar, MapPin, User, FileText, StickyNote, ImageIcon } from "lucide-react";
+import { ArrowLeft, Pencil, MonitorPlay, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+
+const STAMP = {
+  selesai: { text: "CASE CLOSED", color: "text-emerald-500 border-emerald-500" },
+  pending: { text: "PENDING", color: "text-amber-500 border-amber-500" },
+  progress: { text: "ON PROCESS", color: "text-blue-500 border-blue-500" },
+  issue: { text: "CRITICAL", color: "text-rose-500 border-rose-500" },
+};
+
+function StatusStamp({ status }) {
+  const s = STAMP[status] || STAMP.pending;
+  return (
+    <div className={`inline-block border-[3px] ${s.color} px-4 py-2 rounded-md -rotate-6 font-display font-extrabold text-base sm:text-lg tracking-widest bg-white/5 shadow-2xl`}>
+      {s.text}
+    </div>
+  );
+}
+
+function toRoman(num) {
+  const map = [["X", 10], ["IX", 9], ["V", 5], ["IV", 4], ["I", 1]];
+  let n = num, out = "";
+  for (const [r, v] of map) { while (n >= v) { out += r; n -= v; } }
+  return out || String(num);
+}
+
+function HeaderCell({ children, className = "" }) {
+  return <div className={`px-3 py-2 border-r border-emerald-600 ${className}`}>{children}</div>;
+}
+function Cell({ children, className = "" }) {
+  return <div className={`px-3 py-3 border-r border-slate-700/60 border-t border-slate-700/40 ${className}`}>{children}</div>;
+}
+function KV({ k, v }) {
+  return (
+    <div className="flex gap-1.5">
+      <span className="font-bold text-white shrink-0 w-12">{k}</span>
+      <span className="text-slate-500">:</span>
+      <span className="text-slate-200 break-words">{v || "-"}</span>
+    </div>
+  );
+}
 
 export default function ReportDetail() {
   const nav = useNavigate();
   const { id } = useParams();
-  const [report, setReport] = useState(null);
+  const [r, setR] = useState(null);
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState(null);
 
@@ -18,7 +56,7 @@ export default function ReportDetail() {
     (async () => {
       try {
         const { data } = await api.get(`/reports/${id}`);
-        setReport(data);
+        setR(data);
       } catch (e) {
         toast.error("Laporan tidak ditemukan");
         nav("/");
@@ -29,118 +67,140 @@ export default function ReportDetail() {
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-500 font-mono text-sm">Memuat...</div>;
-  if (!report) return null;
+  if (!r) return null;
 
   return (
     <div className="min-h-screen bg-slate-950 grain-overlay">
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <Button variant="ghost" onClick={() => nav("/")} className="text-slate-300 hover:bg-slate-800 hover:text-white gap-1.5 h-9 px-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+          <Button variant="ghost" onClick={() => nav("/")}
+            className="text-slate-300 hover:bg-slate-800 hover:text-white gap-1.5 h-9 px-3">
             <ArrowLeft className="w-4 h-4" /> Kembali
           </Button>
           <div className="ml-auto flex gap-2">
-            <Button
-              data-testid="detail-present-btn"
-              onClick={() => nav(`/present?id=${report.id}`)}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5 h-9"
-            >
+            <Button data-testid="detail-present-btn" onClick={() => nav(`/present?id=${r.id}`)}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white gap-1.5 h-9">
               <MonitorPlay className="w-4 h-4" /> Presentasi
             </Button>
-            <Button
-              data-testid="detail-edit-btn"
-              onClick={() => nav(`/reports/${report.id}/edit`)}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 gap-1.5 font-bold h-9"
-            >
+            <Button data-testid="detail-edit-btn" onClick={() => nav(`/reports/${r.id}/edit`)}
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 gap-1.5 font-bold h-9">
               <Pencil className="w-4 h-4" /> Edit
             </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         <div>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <ShiftBadge value={report.shift} />
-            <StatusBadge value={report.status} />
-            <span className="text-xs font-mono text-slate-500 uppercase tracking-widest">{report.tanggal}</span>
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <ShiftBadge value={r.shift} />
+            <span className="text-xs font-mono text-slate-400 uppercase tracking-widest">{r.tanggal}</span>
+            <span className="text-xs font-mono text-slate-600 uppercase tracking-widest">· Oleh: {r.created_by_name}</span>
           </div>
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-2">{report.area}</h1>
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest">
-            Oleh: {report.created_by_name}
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">{r.area}</h1>
+        </div>
+
+        {/* PPT-style table */}
+        <div className="rounded-lg overflow-hidden border-2 border-emerald-700/80 shadow-2xl bg-slate-900">
+          <div className="grid grid-cols-2 lg:grid-cols-12 bg-emerald-700 text-white text-xs sm:text-sm font-bold font-display uppercase tracking-wide">
+            <HeaderCell className="lg:col-span-2">Keterangan</HeaderCell>
+            <HeaderCell className="lg:col-span-3">What (Problem)</HeaderCell>
+            <HeaderCell className="lg:col-span-3">How (Activity)</HeaderCell>
+            <HeaderCell className="lg:col-span-2">Dikerjakan</HeaderCell>
+            <HeaderCell className="lg:col-span-2 border-r-0">Status</HeaderCell>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-12 text-white">
+            <Cell className="lg:col-span-2">
+              <div className="space-y-1.5 text-sm">
+                <KV k="Line" v={r.line} />
+                <KV k="Mesin" v={r.mesin} />
+                <KV k="Jig" v={r.jig} />
+              </div>
+            </Cell>
+            <Cell className="lg:col-span-3">
+              {r.problems?.length > 0 ? (
+                <ol className="space-y-1.5 text-sm text-slate-100">
+                  {r.problems.map((p, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-rose-400 font-mono font-bold shrink-0 min-w-[24px]">{toRoman(i + 1)}.</span>
+                      <span className="leading-relaxed">{p}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : <span className="text-slate-600 italic text-sm">-</span>}
+            </Cell>
+            <Cell className="lg:col-span-3">
+              {r.activities?.length > 0 ? (
+                <ul className="space-y-1.5 text-sm text-slate-100">
+                  {r.activities.map((a, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-blue-400 shrink-0 text-lg leading-none pt-0.5">•</span>
+                      <span className="leading-relaxed">{a}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <span className="text-slate-600 italic text-sm">-</span>}
+            </Cell>
+            <Cell className="lg:col-span-2">
+              <div className="space-y-1.5 text-sm">
+                <KV k="Who" v={r.who || r.created_by_name} />
+                <KV k="Time" v={r.time} />
+              </div>
+            </Cell>
+            <Cell className="lg:col-span-2 border-r-0 flex items-center justify-center py-6">
+              <StatusStamp status={r.status} />
+            </Cell>
+          </div>
+
+          <div className="bg-emerald-700 text-white text-center px-4 py-1.5 font-display font-bold uppercase tracking-widest text-sm">
+            Activity
+          </div>
+          <div className="bg-slate-900 p-4">
+            {r.images?.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {r.images.map((im, i) => (
+                  <button key={im.id} data-testid={`detail-image-${i}`} onClick={() => setLightbox(im)}
+                    className="space-y-1 text-left group">
+                    <div className="aspect-[4/3] rounded-md overflow-hidden bg-slate-950 border border-slate-700 group-hover:border-amber-500/60 transition-all">
+                      <img src={fileUrl(im.id)} alt={im.label || im.original_filename}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    </div>
+                    {im.label && <div className="text-center text-xs text-slate-300 font-medium italic">{im.label}</div>}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-slate-600 industrial-stripes">
+                <ImageIcon className="w-8 h-8 mb-2" />
+                <div className="text-xs font-mono uppercase tracking-widest">Tidak ada foto activity</div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Images */}
-        {report.images.length > 0 && (
-          <Card className="bg-slate-900/60 border-slate-800 p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <ImageIcon className="w-4 h-4 text-amber-400" />
-              <div className="text-xs font-mono uppercase tracking-widest text-slate-400">Foto Dokumentasi ({report.images.length})</div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {report.images.map((img, idx) => (
-                <button
-                  key={img.id}
-                  data-testid={`detail-image-${idx}`}
-                  onClick={() => setLightbox(img)}
-                  className="aspect-square rounded-lg overflow-hidden bg-slate-950 border border-slate-800 hover:border-amber-500/60 transition-all group"
-                >
-                  <img src={fileUrl(img.id)} alt={img.original_filename} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                </button>
-              ))}
-            </div>
-          </Card>
+        {r.catatan && (
+          <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
+            <div className="text-xs font-mono uppercase tracking-widest text-amber-400 mb-1.5">Catatan / Rekomendasi</div>
+            <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">{r.catatan}</p>
+          </div>
         )}
 
-        {/* Details */}
-        <div className="grid gap-4">
-          <Card className="bg-slate-900/60 border-slate-800 p-5">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 text-amber-400" />
-              <div className="text-xs font-mono uppercase tracking-widest text-slate-400">Deskripsi Pekerjaan</div>
-            </div>
-            <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{report.deskripsi}</p>
-          </Card>
-
-          {report.catatan && (
-            <Card className="bg-slate-900/60 border-slate-800 p-5">
-              <div className="flex items-center gap-2 mb-3">
-                <StickyNote className="w-4 h-4 text-amber-400" />
-                <div className="text-xs font-mono uppercase tracking-widest text-slate-400">Catatan / Rekomendasi</div>
-              </div>
-              <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{report.catatan}</p>
-            </Card>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <MiniField icon={<Calendar className="w-3.5 h-3.5" />} label="Tanggal" value={report.tanggal} />
-            <MiniField icon={<MapPin className="w-3.5 h-3.5" />} label="Area" value={report.area} />
-            <MiniField icon={<User className="w-3.5 h-3.5" />} label="Dibuat Oleh" value={report.created_by_name} />
+        {r.deskripsi && (
+          <div className="p-4 rounded-lg bg-slate-900/60 border border-slate-800">
+            <div className="text-xs font-mono uppercase tracking-widest text-slate-500 mb-1.5">Ringkasan / Deskripsi</div>
+            <p className="text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">{r.deskripsi}</p>
           </div>
-        </div>
+        )}
       </main>
 
-      {/* Lightbox */}
       {lightbox && (
-        <div
-          onClick={() => setLightbox(null)}
-          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out"
-        >
-          <img src={fileUrl(lightbox.id)} alt={lightbox.original_filename} className="max-w-full max-h-full object-contain" />
+        <div onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 cursor-zoom-out">
+          <img src={fileUrl(lightbox.id)} alt={lightbox.original_filename} className="max-w-full max-h-[85vh] object-contain" />
+          {lightbox.label && <div className="mt-4 text-slate-200 font-medium italic">{lightbox.label}</div>}
         </div>
       )}
-    </div>
-  );
-}
-
-function MiniField({ icon, label, value }) {
-  return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3">
-      <div className="flex items-center gap-1.5 text-slate-500 mb-1">
-        {icon}
-        <span className="text-[10px] font-mono uppercase tracking-widest">{label}</span>
-      </div>
-      <div className="text-sm text-white font-medium truncate">{value}</div>
     </div>
   );
 }

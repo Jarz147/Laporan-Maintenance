@@ -266,9 +266,18 @@ function ReportCard({ r, idx, onDelete, canDelete }) {
             <h3 className="font-display text-lg font-semibold text-white truncate">{r.area}</h3>
           </div>
         </div>
-        <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">{r.deskripsi}</p>
+        {(r.line || r.mesin || r.jig) && (
+          <div className="text-[11px] font-mono space-y-0.5">
+            {r.line && <div><span className="text-slate-500">Line:</span> <span className="text-slate-200">{r.line}</span></div>}
+            {r.mesin && <div><span className="text-slate-500">Mesin:</span> <span className="text-slate-200">{r.mesin}</span></div>}
+            {r.jig && <div><span className="text-slate-500">Jig:</span> <span className="text-slate-200">{r.jig}</span></div>}
+          </div>
+        )}
+        <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+          {r.problems?.length > 0 ? r.problems[0] : r.deskripsi}
+        </p>
         <div className="text-[10px] font-mono text-slate-600 uppercase tracking-wider">
-          Oleh: {r.created_by_name}
+          Oleh: {r.created_by_name}{r.who ? ` · Who: ${r.who}` : ""}
         </div>
 
         <div className="flex items-center gap-1.5 pt-2 border-t border-slate-800">
