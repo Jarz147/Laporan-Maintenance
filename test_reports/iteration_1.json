@@ -1,0 +1,29 @@
+{
+  "summary": "First-finish smoke test for Maintenance Daily Report app. All 3 auth logins (admin/shift1/shift2) work with correct role+shift; wrong password returns 401; /auth/me works with/without token; image upload + serve via ?auth= works; full report CRUD, filters (shift+status+q), stats, and RBAC delete (operator 403 on other's report, admin 200) all pass. Frontend end-to-end flow (login quick-fill -> dashboard KPIs -> new report with image upload -> success toast + redirect -> report visible -> presentation mode slide counter -> exit) all pass.",
+  "tested_scope": ["backend", "frontend", "auth", "integration"],
+  "passed": [
+    "POST /api/auth/login for admin, shift1, shift2 returns token + user with correct role/shift",
+    "POST /api/auth/login with wrong password -> 401",
+    "GET /api/auth/me with Bearer returns user; without token -> 401",
+    "POST /api/upload returns {id, storage_path, original_filename, content_type}",
+    "GET /api/files/{id}?auth=<token> -> 200 image/png",
+    "POST /api/reports creates report with images[] (ReportImage objects) and returns created_by_name/created_at",
+    "GET /api/reports with shift/status/q filters works",
+    "GET /api/reports/stats returns full KPI object",
+    "GET /api/reports/{id} returns single report",
+    "PUT /api/reports/{id} updates status pending->selesai",
+    "DELETE /api/reports/{id} -> 403 for other operator, 200 for admin",
+    "Frontend /login quick-shift1-btn fills email/password; submit redirects to /",
+    "Dashboard shows KPI cards, filter-shift, filter-status, search-input, new-report-btn, present-mode-btn",
+    "ReportForm submit with file upload shows toast 'Laporan berhasil disimpan' and redirects; new card visible on dashboard",
+    "Presentation mode loads slide-counter '1 / 1'; exit-presentation-btn returns to dashboard"
+  ],
+  "failed": [],
+  "notes": [
+    "POST /api/reports body must send images as full ReportImage objects (id, storage_path, original_filename, content_type), not just file id strings. Frontend does this correctly."
+  ],
+  "action_items": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true
+}

@@ -1,0 +1,100 @@
+{
+  "project_title": "Daily Maintenance Report & PPT Presentation Web App",
+  "app_type": "hybrid_fullstack",
+  "language": "id",
+  "theme": "dark_slate_industrial",
+  "emotional_archetype": "ARCHETYPE 2: THE PERFORMANCE PRO / INDUSTRIAL TACTICAL",
+  "instructions_to_main_agent": [
+    "Build a modern, high-density industrial maintenance daily report management tool in Bahasa Indonesia.",
+    "Support 2 distinct shift profiles: Shift 1 (07:00 - 15:00) and Shift 2 (15:00 - 23:00) with instant shift switching, active shift badge, and shift-filtered views.",
+    "Implement core CRUD operations for Daily Maintenance Reports with fields: Tanggal, Shift (Shift 1 / Shift 2), Area / Lokasi (e.g., Line Stamping A, CNC Workshop, Utility Boiler, Conveyor Belt #3), Deskripsi Pekerjaan, Status (Selesai / Pending / Dalam Perbaikan / Critical Issue), Upload Multiple Gambar (with image preview, file upload simulator, and gallery viewer), and Catatan / Rekomendasi.",
+    "Provide a dedicated PPT Presentation Mode (Mode Slideshow / Serah Terima Shift) that presents reports one-by-one like a PowerPoint deck. Include Next/Previous keyboard navigation (Arrow keys, Space), thumbnail drawer, auto-play timer, full-screen toggle, and high-visibility typography for shift handover meetings.",
+    "Ensure all interactive elements have data-testid attributes (e.g., data-testid='shift-selector-1', data-testid='btn-presentation-mode', data-testid='report-card-1').",
+    "Never use pure transparent backgrounds on sticky headers or floating overlays; always apply solid or glassmorphism (backdrop-blur-md bg-slate-900/90 border-slate-800).",
+    "Use Lucide icons (lucide-react) for industrial UI elements: Wrench, HardHat, MonitorPlay, AlertTriangle, CheckCircle2, Clock, Filter, Search, ImagePlus, ChevronLeft, ChevronRight, SlidersHorizontal, ArrowRightLeft, FileSpreadsheet."
+  ],
+  "typography": {
+    "headline_font": "Outfit, sans-serif",
+    "body_font": "Inter, sans-serif",
+    "mono_font": "JetBrains Mono, monospace",
+    "font_cdn_link": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@500;600;700;800&display=swap",
+    "scale": {
+      "h1_hero": "text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight",
+      "h2_section": "text-2xl sm:text-3xl font-bold tracking-tight",
+      "h3_card": "text-lg sm:text-xl font-semibold",
+      "body": "text-sm sm:text-base font-normal leading-relaxed",
+      "small_label": "text-xs font-medium uppercase tracking-wider text-slate-400"
+    }
+  },
+  "colors": {
+    "background": {
+      "main": "bg-slate-950",
+      "surface": "bg-slate-900",
+      "card": "bg-slate-900/80",
+      "card_hover": "hover:bg-slate-800/80",
+      "overlay": "bg-slate-950/80 backdrop-blur-xl"
+    },
+    "border": {
+      "default": "border-slate-800",
+      "active": "border-amber-500/50",
+      "subtle": "border-slate-800/60"
+    },
+    "primary": {
+      "brand": "bg-amber-500 text-slate-950 hover:bg-amber-400",
+      "brand_subtle": "bg-amber-500/10 text-amber-400 border border-amber-500/20",
+      "accent_blue": "bg-blue-600 text-white hover:bg-blue-500"
+    },
+    "status_badges": {
+      "done": {
+        "bg": "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+        "label": "Selesai (Done)"
+      },
+      "pending": {
+        "bg": "bg-amber-500/15 text-amber-400 border-amber-500/30",
+        "label": "Pending"
+      },
+      "issue": {
+        "bg": "bg-rose-500/15 text-rose-400 border-rose-500/30",
+        "label": "Kendala / Issue"
+      },
+      "in_progress": {
+        "bg": "bg-blue-500/15 text-blue-400 border-blue-500/30",
+        "label": "Proses Pengerjaan"
+      }
+    },
+    "shift_colors": {
+      "shift_1": {
+        "badge": "bg-amber-400/10 text-amber-400 border-amber-400/30",
+        "label": "Shift 1 (Pagi)"
+      },
+      "shift_2": {
+        "badge": "bg-indigo-400/10 text-indigo-400 border-indigo-400/30",
+        "label": "Shift 2 (Siang/Malam)"
+      }
+    }
+  },
+  "layout_patterns": {
+    "header": "Sticky navbar with dark slate glassmorphism (bg-slate-900/90 backdrop-blur-md border-b border-slate-800), active shift indicator switcher (Shift 1 vs Shift 2), Search bar, New Report button, and PPT Presentation Trigger button.",
+    "kpi_bar": "Summary bar at the top displaying total reports today, Selesai count, Pending count, Critical Issue count, and Shift ratio.",
+    "filter_toolbar": "Search input, Dropdown filter for Shift (Semua / Shift 1 / Shift 2), Dropdown for Status, Date Picker / Quick Date Range (Hari Ini, 7 Hari, Bulan Ini), Area Filter, View Toggle (Grid Cards vs Compact Table).",
+    "report_grid": "Mode B Tetris/High-Density grid layout with crisp slate borders, status pills, area tags, multi-photo thumbnail grid, technician avatar/shift stamp, and instant actions (Detail, Edit, Launch in Presentation).",
+    "presentation_mode": "Full-viewport overlay with dark gradient background, high-contrast slide card, left/right floating arrow controls, slide progress bar, thumbnail filmstrip at bottom, full-screen toggle, speaker notes toggle, and print/export summary button."
+  },
+  "media_and_images": {
+    "factory_hero_bg": "https://images.unsplash.com/photo-1717386255773-1e3037c81788?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwxfHxmYWN0b3J5JTIwbWFjaGluZXJ5JTIwbWFudWZhY3R1cmluZyUyMGVxdWlwbWVudHxlbnwwfHx8fDE3ODg5MjI3ODl8MA&ixlib=rb-4.1.0&q=85",
+    "technician_1": "https://images.unsplash.com/photo-1632914146475-bfe6fa6b2a12?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHw0fHxpbmR1c3RyaWFsJTIwbWFpbnRlbmFuY2UlMjB0ZWNobmljaWFuJTIwZmFjdG9yeXxlbnwwfHx8fDE3ODg5MjI3ODl8MA&ixlib=rb-4.1.0&q=85",
+    "technician_2": "https://images.unsplash.com/photo-1598299803204-b73796f43289?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzh8MHwxfHNlYXJjaHwyfHxpbmR1c3RyaWFsJTIwbWFpbnRlbmFuY2UlMjB0ZWNobmljaWFuJTIwZmFjdG9yeXxlbnwwfHx8fDE3ODg5MjI3ODl8MA&ixlib=rb-4.1.0&q=85",
+    "equipment_1": "https://images.unsplash.com/photo-1647427060118-4911c9821b82?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwyfHxmYWN0b3J5JTIwbWFjaGluZXJ5JTIwbWFudWZhY3R1cmluZyUyMGVxdWlwbWVudHxlbnwwfHx8fDE3ODg5MjI3ODl8MA&ixlib=rb-4.1.0&q=85",
+    "equipment_2": "https://images.unsplash.com/photo-1610891015188-5369212db097?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwzfHxmYWN0b3J5JTIwbWFjaGluZXJ5JTIwbWFudWZhY3R1cmluZyUyMGVxdWlwbWVudHxlbnwwfHx8fDE3ODg5MjI3ODl8MA&ixlib=rb-4.1.0&q=85"
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Ensure the language used throughout the UI is natural Bahasa Indonesia suitable for Indonesian manufacturing/maintenance plants (e.g. Laporan Harian Maintenance, Serah Terima Shift, Modus Presentasi PPT, Deskripsi Pekerjaan, Penanganan Kendala).",
+    "Provide realistic pre-populated initial seed reports for both Shift 1 and Shift 2 so the presentation mode and filters work out-of-the-box.",
+    "Implement real local storage persistence or state management so new reports and edits persist across refreshes.",
+    "Add toast notifications via sonner for actions like 'Laporan Berhasil Disimpan', 'Shift Berhasil Diubah', 'Foto Diunggah'.",
+    "Make presentation mode respond smoothly to keyboard navigation (Left/Right Arrow keys) and include a clear Exit button (Esc)."
+  ]
+},
+  "overwrite": true,
+  "path": "/app/design_guidelines.json"
+}
