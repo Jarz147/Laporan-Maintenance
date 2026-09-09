@@ -8,10 +8,10 @@ import { toast } from "sonner";
 import { ActivityGallery } from "../components/ActivityGallery";
 
 const STAMP = {
-  selesai: { text: "CASE CLOSED", color: "text-emerald-500 border-emerald-500" },
+  selesai: { text: "CLOSE", color: "text-emerald-500 border-emerald-500" },
   pending: { text: "PENDING", color: "text-amber-500 border-amber-500" },
-  progress: { text: "ON PROCESS", color: "text-blue-500 border-blue-500" },
-  issue: { text: "CRITICAL", color: "text-rose-500 border-rose-500" },
+  progress: { text: "ON PROGRESS", color: "text-blue-500 border-blue-500" },
+  issue: { text: "OPEN", color: "text-rose-500 border-rose-500" },
 };
 
 function StatusStamp({ status }) {

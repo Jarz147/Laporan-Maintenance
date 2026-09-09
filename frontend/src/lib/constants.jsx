@@ -1,10 +1,10 @@
 import { Badge } from "../components/ui/badge";
 
 export const STATUS_MAP = {
-  selesai: { label: "Selesai", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  selesai: { label: "Close", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
   pending: { label: "Pending", cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
-  progress: { label: "Proses", cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  issue: { label: "Kendala", cls: "bg-rose-500/15 text-rose-400 border-rose-500/30" },
+  progress: { label: "On Progress", cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  issue: { label: "Open", cls: "bg-rose-500/15 text-rose-400 border-rose-500/30" },
 };
 
 export const SHIFT_MAP = {

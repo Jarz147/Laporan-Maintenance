@@ -172,11 +172,8 @@ export default function ReportForm() {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 pb-32">
         <div className="mb-8">
-          <div className="text-xs font-mono uppercase tracking-widest text-amber-400 mb-2">
-            // {isEdit ? "Perbarui Laporan Maintenance" : "Format Laporan PPT — Maintenance"}
-          </div>
           <h1 className="font-display text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            {isEdit ? "Edit Laporan" : "Laporan Harian Baru"}
+            Input Laporan Harian
           </h1>
         </div>
 
