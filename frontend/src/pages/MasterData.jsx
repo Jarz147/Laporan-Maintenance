@@ -19,6 +19,7 @@ export default function MasterData() {
   const nav = useNavigate();
   const [items, setItems] = useState({ line: [], mesin: [], jig: [], operator: [] });
   const [newName, setNewName] = useState({ line: "", mesin: "", jig: "", operator: "" });
+  const [newRole, setNewRole] = useState("member");
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
 
@@ -81,7 +82,9 @@ export default function MasterData() {
     const name = newName[type].trim();
     if (!name) return;
     try {
-      await api.post("/master", { type, name });
+      const body = { type, name };
+      if (type === "operator") body.role = newRole;
+      await api.post("/master", body);
       setNewName((p) => ({ ...p, [type]: "" }));
       toast.success(`${name} ditambahkan`);
       load();
@@ -174,16 +177,30 @@ export default function MasterData() {
                     <Icon className={`w-4 h-4 ${t.color}`} />
                     <div className="text-xs font-mono uppercase tracking-widest text-slate-400">Tambah {t.label} Baru</div>
                   </div>
-                  <form onSubmit={(e) => { e.preventDefault(); add(t.key); }} className="flex gap-2">
-                    <Input data-testid={`input-${t.key}`}
-                      value={newName[t.key]}
-                      onChange={(e) => setNewName({ ...newName, [t.key]: e.target.value })}
-                      placeholder={t.placeholder}
-                      className="bg-slate-950 border-slate-800 text-white h-11 flex-1" />
-                    <Button type="submit" data-testid={`add-${t.key}-btn`}
-                      className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold h-11 gap-1.5 px-5">
-                      <Plus className="w-4 h-4" strokeWidth={2.5} /> Tambah
-                    </Button>
+                  <form onSubmit={(e) => { e.preventDefault(); add(t.key); }} className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input data-testid={`input-${t.key}`}
+                        value={newName[t.key]}
+                        onChange={(e) => setNewName({ ...newName, [t.key]: e.target.value })}
+                        placeholder={t.placeholder}
+                        className="bg-slate-950 border-slate-800 text-white h-11 flex-1" />
+                      <Button type="submit" data-testid={`add-${t.key}-btn`}
+                        className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold h-11 gap-1.5 px-5">
+                        <Plus className="w-4 h-4" strokeWidth={2.5} /> Tambah
+                      </Button>
+                    </div>
+                    {t.key === "operator" && (
+                      <div className="flex gap-2 items-center" data-testid="operator-role-select">
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500 mr-1">Role:</span>
+                        {[["leader", "Leader"], ["member", "Member"]].map(([k, l]) => (
+                          <button key={k} type="button" data-testid={`role-${k}`}
+                            onClick={() => setNewRole(k)}
+                            className={`h-8 px-3 rounded-md text-xs font-medium border transition-colors ${newRole === k ? (k === "leader" ? "bg-amber-500/20 border-amber-500 text-amber-300" : "bg-indigo-500/20 border-indigo-500 text-indigo-300") : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200"}`}>
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </form>
                 </Card>
 
@@ -207,6 +224,11 @@ export default function MasterData() {
                           className="py-2.5 flex items-center gap-3 group">
                           <Icon className={`w-3.5 h-3.5 ${t.color} shrink-0`} />
                           <div className="text-sm text-slate-200 flex-1">{it.name}</div>
+                          {t.key === "operator" && it.role && (
+                            <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${it.role === "leader" ? "bg-amber-500/10 text-amber-400 border-amber-500/30" : "bg-indigo-500/10 text-indigo-400 border-indigo-500/30"}`}>
+                              {it.role}
+                            </span>
+                          )}
                           <Button size="sm" variant="ghost" onClick={() => del(it.id, it.name)}
                             data-testid={`delete-${t.key}-${it.id}`}
                             className="text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 h-8 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -10,7 +10,7 @@ import { Label } from "../components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Card } from "../components/ui/card";
 import {
-  ArrowLeft, Save, Upload, X, ImagePlus, Wrench, Plus, ListChecks, Zap, UserCog, ClipboardList, AlertTriangle
+  ArrowLeft, Save, Upload, X, ImagePlus, Wrench, Plus, ListChecks, Zap, UserCog, ClipboardList, AlertTriangle, Package
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -47,8 +47,10 @@ export default function ReportForm() {
     deskripsi: "",
     problems: [""],
     activities: [""],
-    who: user?.name || "",
+    who: user?.name ? [user.name] : [],
     time: "",
+    stopline: 0,
+    spareparts: [""],
     status: "progress",
     kendala: "",
     pic: "",
@@ -72,8 +74,10 @@ export default function ReportForm() {
           deskripsi: data.deskripsi || "",
           problems: data.problems?.length ? data.problems : [""],
           activities: data.activities?.length ? data.activities : [""],
-          who: data.who || "",
+          who: Array.isArray(data.who) ? data.who : (data.who ? [data.who] : []),
           time: data.time || "",
+          stopline: data.stopline || 0,
+          spareparts: data.spareparts?.length ? data.spareparts : [""],
           status: data.status,
           kendala: data.kendala || "",
           pic: data.pic || "",
@@ -132,6 +136,7 @@ export default function ReportForm() {
         ...form,
         problems: form.problems.map((s) => s.trim()).filter(Boolean),
         activities: form.activities.map((s) => s.trim()).filter(Boolean),
+        spareparts: form.spareparts.map((s) => s.trim()).filter(Boolean),
       };
       if (isEdit) {
         await api.put(`/reports/${id}`, payload);
@@ -208,16 +213,6 @@ export default function ReportForm() {
                 onChange={(e) => setForm({ ...form, area: e.target.value })}
                 placeholder="cth: Robot Welding Assy 7 — Perbaikan Manifold"
                 className="bg-slate-950 border-slate-800 text-white h-11" />
-            </FieldWrap>
-            <FieldWrap label="PIC (Person In Charge)">
-              <Select value={form.pic || undefined} onValueChange={(v) => setForm({ ...form, pic: v })}>
-                <SelectTrigger data-testid="form-pic" className="bg-slate-950 border-slate-800 text-white h-11">
-                  <SelectValue placeholder={master.operator.length ? "Pilih PIC dari master Operator" : "Belum ada operator — tambah di Master Data"} />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-900 border-slate-800 text-slate-200">
-                  {master.operator.map((n) => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                </SelectContent>
-              </Select>
             </FieldWrap>
           </Card>
 
@@ -334,23 +329,68 @@ export default function ReportForm() {
           {/* Dikerjakan */}
           <Card className="bg-slate-900/60 border-slate-800 p-5 sm:p-6 space-y-5">
             <SectionHeader icon={<UserCog className="w-4 h-4 text-amber-400" />} label="Dikerjakan" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <FieldWrap label="Who">
-                <Input data-testid="form-who" value={form.who} onChange={(e) => setForm({ ...form, who: e.target.value })}
-                  list="master-operators" placeholder="cth: Roch" className="bg-slate-950 border-slate-800 text-white h-11" />
-              </FieldWrap>
-              <FieldWrap label="Time">
-                <Input data-testid="form-time" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })}
-                  placeholder="cth: 08:30 - 10:00" className="bg-slate-950 border-slate-800 text-white h-11" />
-              </FieldWrap>
-            </div>
+            <FieldWrap label="Who (klik nama — bisa pilih lebih dari 1)">
+              {master.operator.length === 0 ? (
+                <div className="text-sm text-slate-500 italic p-3 border border-dashed border-slate-800 rounded-md">
+                  Belum ada operator. Tambahkan dulu di Master Data → Operator.
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2" data-testid="who-buttons">
+                  {master.operator.map((n) => {
+                    const active = form.who.includes(n);
+                    return (
+                      <button key={n} type="button" data-testid={`who-btn-${n}`}
+                        onClick={() => setForm({ ...form, who: active ? form.who.filter((x) => x !== n) : [...form.who, n] })}
+                        className={`h-9 px-3.5 rounded-md text-sm font-medium border transition-colors ${active ? "bg-indigo-500/20 border-indigo-500 text-indigo-200" : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-600 hover:text-slate-200"}`}>
+                        {n}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </FieldWrap>
+            <FieldWrap label="Stopline (menit)">
+              <Input data-testid="form-stopline" type="number" min="0" step="1"
+                value={form.stopline} onChange={(e) => setForm({ ...form, stopline: parseInt(e.target.value) || 0 })}
+                placeholder="cth: 45" className="bg-slate-950 border-slate-800 text-white h-11 max-w-xs" />
+            </FieldWrap>
             <FieldWrap label="Catatan / Rekomendasi (Opsional)">
               <Textarea data-testid="form-catatan" value={form.catatan}
                 onChange={(e) => setForm({ ...form, catatan: e.target.value })}
-                placeholder="Catatan tambahan, rekomendasi untuk shift berikutnya, spare part..."
+                placeholder="Catatan tambahan, rekomendasi untuk shift berikutnya..."
                 rows={3}
                 className="bg-slate-950 border-slate-800 text-white resize-none" />
             </FieldWrap>
+          </Card>
+
+          {/* Penggantian Sparepart */}
+          <Card className="bg-slate-900/60 border-slate-800 p-5 sm:p-6 space-y-3">
+            <SectionHeader icon={<Package className="w-4 h-4 text-emerald-400" />} label="Penggantian Sparepart (Opsional)" />
+            {form.spareparts.map((sp, idx) => (
+              <div key={idx} className="flex gap-2 items-center">
+                <div className="w-9 h-11 flex items-center justify-center rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shrink-0">
+                  <Package className="w-3.5 h-3.5" />
+                </div>
+                <Input data-testid={`form-sparepart-${idx}`} value={sp}
+                  onChange={(e) => setListItem("spareparts", idx, e.target.value)}
+                  placeholder="cth: Servo Drive 2.5kW / Bearing NSK 6205 / Sensor Proximity M12"
+                  className="bg-slate-950 border-slate-800 text-white h-11 flex-1" />
+                <Button type="button" variant="ghost" size="sm"
+                  data-testid={`remove-sparepart-${idx}`}
+                  onClick={() => removeListItem("spareparts", idx)}
+                  className="text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 h-11 w-9 p-0 shrink-0">
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+            <Button type="button" variant="ghost" data-testid="add-sparepart-btn"
+              onClick={() => addListItem("spareparts")}
+              className="text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 gap-1.5 h-9">
+              <Plus className="w-4 h-4" /> Tambah Sparepart
+            </Button>
+            <div className="text-[10px] font-mono text-slate-600 uppercase tracking-wider pt-1">
+              Setiap sparepart otomatis dicatat ke Log Riwayat Penggantian
+            </div>
           </Card>
 
           {/* Foto */}
@@ -408,10 +448,6 @@ export default function ReportForm() {
           </div>
         </form>
 
-        {/* Master operator autocomplete for Who field */}
-        <datalist id="master-operators">
-          {master.operator.map((n) => <option key={n} value={n} />)}
-        </datalist>
       </main>
     </div>
   );

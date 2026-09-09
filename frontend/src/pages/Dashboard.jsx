@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, fileUrl } from "../lib/api";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "../lib/auth";
 import { StatusBadge, ShiftBadge, STATUS_MAP } from "../lib/constants";
 import { Button } from "../components/ui/button";
@@ -16,7 +17,7 @@ import {
 } from "../components/ui/alert-dialog";
 import {
   Wrench, Plus, Search, Filter, MonitorPlay, LogOut, Pencil, Trash2, Eye, ImageIcon,
-  CheckCircle2, Clock, AlertTriangle, Cog, HardHat, ChevronDown, Calendar as CalendarIcon, Database, X
+  CheckCircle2, Clock, AlertTriangle, Cog, HardHat, ChevronDown, Calendar as CalendarIcon, Database, X, Package
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -69,6 +70,22 @@ export default function Dashboard() {
 
   useEffect(() => { load(); }, [load]);
 
+  const stoplineData = useMemo(() => {
+    const map = {};
+    for (const r of reports) {
+      const mins = r.stopline || 0;
+      if (mins <= 0) continue;
+      map[r.tanggal] = (map[r.tanggal] || 0) + mins;
+    }
+    return Object.entries(map)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-14)
+      .map(([date, total]) => ({
+        date: (() => { try { return format(new Date(date + "T00:00:00"), "d MMM", { locale: idLocale }); } catch { return date; } })(),
+        total,
+      }));
+  }, [reports]);
+
   const del = async (id) => {
     try {
       await api.delete(`/reports/${id}`);
@@ -105,6 +122,15 @@ export default function Dashboard() {
             >
               <Database className="w-4 h-4" />
               <span className="hidden md:inline">Master Data</span>
+            </Button>
+            <Button
+              data-testid="sparepart-history-btn"
+              variant="ghost"
+              onClick={() => nav("/spareparts")}
+              className="text-slate-300 hover:bg-slate-800 hover:text-white h-9 gap-1.5 px-3"
+            >
+              <Package className="w-4 h-4" />
+              <span className="hidden lg:inline">Riwayat Part</span>
             </Button>
             <Button
               data-testid="present-mode-btn"
@@ -178,6 +204,27 @@ export default function Dashboard() {
           <KPI icon={<Cog className="w-4 h-4" />} label="Proses" value={stats.progress || 0} color="text-blue-400" testid="kpi-progress" />
           <KPI icon={<AlertTriangle className="w-4 h-4" />} label="Kendala" value={stats.issue || 0} color="text-rose-400" testid="kpi-issue" />
         </div>
+
+        {stoplineData.length > 0 && (
+          <Card data-testid="stopline-chart" className="bg-slate-900/60 border-slate-800 p-4 sm:p-5 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
+              <div className="text-xs font-mono uppercase tracking-widest text-amber-400">Chart Stopline (Menit / Hari)</div>
+              <div className="text-[10px] text-slate-500 ml-auto font-mono">14 hari terakhir</div>
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={stoplineData} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+                <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 11 }} tickLine={false} axisLine={{ stroke: "#334155" }} />
+                <YAxis stroke="#64748b" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{ fill: "rgba(245, 158, 11, 0.08)" }}
+                  contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", borderRadius: "6px", fontSize: "12px" }}
+                  labelStyle={{ color: "#f1f5f9" }}
+                  formatter={(val) => [`${val} menit`, "Stopline"]} />
+                <Bar dataKey="total" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        )}
 
         {/* Filter Toolbar */}
         <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 sm:p-4 mb-6 space-y-3">

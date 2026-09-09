@@ -137,8 +137,10 @@ class ReportCreate(BaseModel):
     deskripsi: Optional[str] = ""
     problems: List[str] = []
     activities: List[str] = []
-    who: Optional[str] = ""
+    who: List[str] = []
     time: Optional[str] = ""
+    stopline: Optional[int] = 0
+    spareparts: List[str] = []
     status: str  # selesai, issue, progress
     kendala: Optional[str] = ""
     pic: Optional[str] = ""
@@ -155,8 +157,10 @@ class ReportUpdate(BaseModel):
     deskripsi: Optional[str] = None
     problems: Optional[List[str]] = None
     activities: Optional[List[str]] = None
-    who: Optional[str] = None
+    who: Optional[List[str]] = None
     time: Optional[str] = None
+    stopline: Optional[int] = None
+    spareparts: Optional[List[str]] = None
     status: Optional[str] = None
     kendala: Optional[str] = None
     pic: Optional[str] = None
@@ -303,8 +307,10 @@ async def create_report(payload: ReportCreate, user: dict = Depends(get_current_
         "deskripsi": payload.deskripsi or "",
         "problems": payload.problems or [],
         "activities": payload.activities or [],
-        "who": payload.who or "",
+        "who": payload.who if isinstance(payload.who, list) else ([payload.who] if payload.who else []),
         "time": payload.time or "",
+        "stopline": payload.stopline or 0,
+        "spareparts": [s.strip() for s in (payload.spareparts or []) if s and s.strip()],
         "status": payload.status,
         "kendala": payload.kendala or "",
         "pic": payload.pic or "",
@@ -316,6 +322,20 @@ async def create_report(payload: ReportCreate, user: dict = Depends(get_current_
         "updated_at": now
     }
     await db.reports.insert_one(doc)
+    for sp in doc.get("spareparts", []):
+        await db.spareparts_history.insert_one({
+            "id": str(uuid.uuid4()),
+            "sparepart": sp,
+            "report_id": doc["id"],
+            "report_area": doc["area"],
+            "line": doc.get("line", ""),
+            "mesin": doc.get("mesin", ""),
+            "jig": doc.get("jig", ""),
+            "tanggal": doc["tanggal"],
+            "shift": doc["shift"],
+            "who": doc.get("who", []),
+            "created_at": now,
+        })
     return report_from_doc(doc)
 
 @api_router.get("/reports")
@@ -380,9 +400,29 @@ async def update_report(report_id: str, payload: ReportUpdate, user: dict = Depe
     update_data = {k: v for k, v in payload.model_dump(exclude_unset=True).items() if v is not None}
     if "images" in update_data:
         update_data["images"] = [img if isinstance(img, dict) else img.model_dump() for img in update_data["images"]]
+    if "who" in update_data and isinstance(update_data["who"], str):
+        update_data["who"] = [update_data["who"]] if update_data["who"] else []
+    if "spareparts" in update_data:
+        update_data["spareparts"] = [s.strip() for s in update_data["spareparts"] if s and s.strip()]
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     await db.reports.update_one({"id": report_id}, {"$set": update_data})
     doc = await db.reports.find_one({"id": report_id})
+    if "spareparts" in update_data:
+        await db.spareparts_history.delete_many({"report_id": report_id})
+        for sp in update_data["spareparts"]:
+            await db.spareparts_history.insert_one({
+                "id": str(uuid.uuid4()),
+                "sparepart": sp,
+                "report_id": report_id,
+                "report_area": doc.get("area", ""),
+                "line": doc.get("line", ""),
+                "mesin": doc.get("mesin", ""),
+                "jig": doc.get("jig", ""),
+                "tanggal": doc.get("tanggal", ""),
+                "shift": doc.get("shift", ""),
+                "who": doc.get("who", []),
+                "created_at": update_data["updated_at"],
+            })
     return report_from_doc(doc)
 
 @api_router.delete("/reports/{report_id}")
@@ -395,9 +435,15 @@ async def delete_report(report_id: str, user: dict = Depends(get_current_user)):
     await db.reports.delete_one({"id": report_id})
     return {"ok": True}
 
+@api_router.get("/spareparts/history")
+async def spareparts_history_endpoint(user: dict = Depends(get_current_user)):
+    docs = await db.spareparts_history.find({}, {"_id": 0}).sort("created_at", -1).to_list(2000)
+    return docs
+
 class MasterItem(BaseModel):
     type: str
     name: str
+    role: Optional[str] = ""
 
 @api_router.get("/master/template")
 async def master_template(user: dict = Depends(get_current_user)):
@@ -478,9 +524,10 @@ async def add_master(payload: MasterItem, user: dict = Depends(get_current_user)
     if existing:
         raise HTTPException(status_code=400, detail="Data sudah ada")
     doc = {"id": str(uuid.uuid4()), "type": payload.type, "name": name,
+           "role": (payload.role or "").strip().lower() if payload.type == "operator" else "",
            "created_at": datetime.now(timezone.utc).isoformat()}
     await db.master.insert_one(doc)
-    return {"id": doc["id"], "type": doc["type"], "name": doc["name"]}
+    return {"id": doc["id"], "type": doc["type"], "name": doc["name"], "role": doc["role"]}
 
 @api_router.delete("/master/{item_id}")
 async def del_master(item_id: str, user: dict = Depends(get_current_user)):

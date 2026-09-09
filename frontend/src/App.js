@@ -8,6 +8,7 @@ import ReportForm from "@/pages/ReportForm";
 import ReportDetail from "@/pages/ReportDetail";
 import Presentation from "@/pages/Presentation";
 import MasterData from "@/pages/MasterData";
+import SpareHistory from "@/pages/SpareHistory";
 
 function Protected({ children }) {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ function App() {
             <Route path="/reports/:id/edit" element={<Protected><ReportForm /></Protected>} />
             <Route path="/present" element={<Protected><Presentation /></Protected>} />
             <Route path="/master" element={<Protected><MasterData /></Protected>} />
+            <Route path="/spareparts" element={<Protected><SpareHistory /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

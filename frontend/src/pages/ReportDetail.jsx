@@ -144,9 +144,8 @@ export default function ReportDetail() {
             </Cell>
             <Cell className="lg:col-span-2">
               <div className="space-y-1.5 text-sm">
-                <KV k="Who" v={r.who || r.created_by_name} />
-                <KV k="PIC" v={r.pic} />
-                <KV k="Time" v={r.time} />
+                <KV k="Who" v={Array.isArray(r.who) ? (r.who.join(", ") || r.created_by_name) : (r.who || r.created_by_name)} />
+                <KV k="Stopline" v={r.stopline ? `${r.stopline} menit` : (r.time || "")} />
               </div>
             </Cell>
             <Cell className="lg:col-span-2 border-r-0 flex items-center justify-center py-6">
@@ -161,6 +160,20 @@ export default function ReportDetail() {
             <ActivityGallery images={r.images || []} testidPrefix="detail-image" />
           </div>
         </div>
+
+        {r.spareparts?.length > 0 && (
+          <div data-testid="detail-spareparts" className="p-4 rounded-lg bg-emerald-500/5 border border-emerald-500/30">
+            <div className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-2">Penggantian Sparepart</div>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-sm text-slate-100">
+              {r.spareparts.map((sp, i) => (
+                <li key={i} className="flex gap-2 items-start">
+                  <span className="text-emerald-400 pt-0.5">▸</span>
+                  <span>{sp}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {r.status === "issue" && r.kendala && (
           <div data-testid="detail-kendala" className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/30">
